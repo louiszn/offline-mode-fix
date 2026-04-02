@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "xyz.louiszn.offlinemodefix.client.mixin",
+  "compatibilityLevel": "${java}",
+  "mixins": [
+    "ChatComponentMixin",
+    "MinecraftMixin",
+    "ToastManagerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

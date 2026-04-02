@@ -1,25 +1,51 @@
-# Stonecutter Fabric template
-## Setup
-1. Review the supported Minecraft versions in `settings.gradle.kts`.
-   For new entries, add `versions/.../gradle.properties` with the same keys as other versions.
-2. Change `mod.group`, `mod.id` and `mod.name` properties in `gradle.properties`.
-3. Rename `com.example` package in `src/main/java`.
-4. Rename `src/main/resources/template.mixins.json` to use your mod's id.
-5. Review the `LICENSE` file. 
-   See the [license decision diagram](https://docs.codeberg.org/getting-started/licensing/#license-decision-diagram) for common options.
-6. Review `src/main/resources/fabric.mod.json` to have up-to-date properties.
+# Offline Mode Fix
 
-## Usage
-- Use `"Set active project to ..."` Gradle tasks to update the Minecraft version
-  available in `src/` classes.
-- Use `buildAndCollect` Gradle task to store mod releases in `build/libs/`.
-- Enable `mod-publish-plugin` in `stonecutter.gradle.kts` and `build.gradle.kts`
-  and the corresponding code blocks to publish releases to Modrinth and Curseforge.
-- Enable `maven-publish` in `build.gradle.kts` and the corresponding code block
-  to publish releases to a personal maven repository.
+A lightweight, plug-and-play Fabric mod that fixes the massive chat lag spikes and annoying UI warnings when playing on offline-mode Minecraft servers.
 
-## Useful links
-- [Stonecutter beginner's guide](https://stonecutter.kikugie.dev/wiki/start/): *spoiler: you* ***need*** *to understand how it works!*
-- [Fabric Discord server](https://discord.gg/v6v4pMv): for mod development help.
-- [Stonecutter Discord server](https://discord.kikugie.dev/): for Stonecutter and Gradle help.
-- [How To Ask Questions - the guide](http://www.catb.org/esr/faqs/smart-questions.html): also in [video form](https://www.youtube.com/results?search_query=How+To+Ask+Questions+The+Smart+Way).
+## Features
+* **Zero Chat Lag:** Prevents the 30-second API timeout lag spikes that happen when sending or receiving messages on offline servers.
+* **Clean UI:** Removes the ugly red/gray "Not Secure" sidebars from player messages, restoring the classic 1.18 chat look.
+* **No Annoying Toasts:** Hides the "Unverified Server" popup that appears every time you join the world.
+* **Smart Premium Compatibility:** Automatically detects if you are using a premium account and lets vanilla checks run normally. You can safely leave this mod installed when playing on premium servers like Hypixel.
+
+## Installation
+1. Install the [Fabric Loader](https://fabricmc.net/).
+2. Download the correct `.jar` for your Minecraft version from the releases page.
+3. Drop the `.jar` into your `.minecraft/mods` folder.
+
+## Building from Source
+This project uses **Stonecutter** to seamlessly support multiple Minecraft versions (1.21.1 through 1.21.11) from a single unified codebase. You will need Java 21 and Git installed on your system.
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/LouisZN/OfflineModeFix.git
+   cd OfflineModeFix
+   ```
+
+2. Build the project using the Gradle wrapper. To compile all supported Minecraft versions at once, run:
+   * **Windows:**
+     ```cmd
+     gradlew buildAndCollect
+     ```
+   * **Linux / macOS:**
+     ```bash
+     ./gradlew buildAndCollect
+     ```
+
+3. Once the build process finishes, you will find the compiled `.jar` files for every version cleanly organized in the `/versions/xxx/build/libs/` directory.
+
+### IDE Setup for Development (IntelliJ IDEA)
+Because Stonecutter relies on dynamic comments (`//? if`) to switch code between mapping versions:
+1. Install the **Stonecutter Dev** plugin by KikuGie from the IntelliJ Plugins Marketplace for proper syntax highlighting and error resolution.
+2. Open the Gradle tab, navigate to `Tasks -> stonecutter`, and double-click **`Set active project to <version>`** to swap your active workspace to a specific Minecraft update (e.g., `1.21.11`).
+
+## How it works (Technical)
+In 1.19+, Minecraft introduced Chat Reporting. Offline clients fail to fetch cryptographic keys from Mojang's API, causing hanging web requests (lag) and triggering the game to flag all messages as "unsecure" (UI warnings).
+
+This mod uses surgical Mixins to:
+1. Detect offline (Version 3) UUIDs to safely bypass the hanging network calls.
+2. Intercept the chat GUI renderer to hide the "Not Secure" tag.
+3. Block the specific "Unverified Server" toast from being added to the screen via the `ToastManager` / `ToastComponent`.
+
+## Contributing
+Contributions are always welcome. If you have an idea for an improvement or find a bug, please open an issue first to discuss what you would like to change. Pull requests are greatly appreciated.
