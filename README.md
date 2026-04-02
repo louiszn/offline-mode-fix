@@ -20,7 +20,7 @@ Here is the corrected version of your markdown.
 1. Clone the repository:
 
    ```bash
-   git clone [https://github.com/louiszn/offline-mode-fix](https://github.com/louiszn/offline-mode-fix)
+   git clone https://github.com/louiszn/offline-mode-fix
    cd offline-mode-fix
    ```
 
