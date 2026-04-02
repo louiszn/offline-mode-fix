@@ -15,19 +15,25 @@ A lightweight, plug-and-play Fabric mod that fixes the massive chat lag spikes a
 
 ## Building from Source
 This project uses **Stonecutter** to seamlessly support multiple Minecraft versions (1.21.1 through 1.21.11) from a single unified codebase. You will need Java 21 and Git installed on your system.
+Here is the corrected version of your markdown. 
 
 1. Clone the repository:
+
    ```bash
-   git clone https://github.com/LouisZN/OfflineModeFix.git
-   cd OfflineModeFix
+   git clone [https://github.com/louiszn/offline-mode-fix](https://github.com/louiszn/offline-mode-fix)
+   cd offline-mode-fix
    ```
 
 2. Build the project using the Gradle wrapper. To compile all supported Minecraft versions at once, run:
+
    * **Windows:**
+
      ```cmd
      gradlew buildAndCollect
      ```
+
    * **Linux / macOS:**
+
      ```bash
      ./gradlew buildAndCollect
      ```
