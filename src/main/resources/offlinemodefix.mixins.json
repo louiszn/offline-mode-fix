@@ -5,7 +5,8 @@
   "mixins": [
     "ChatComponentMixin",
     "MinecraftMixin",
-    "ToastManagerMixin"
+    "ToastManagerMixin",
+    "YggdrasilMixin"
   ],
   "injectors": {
     "defaultRequire": 1
