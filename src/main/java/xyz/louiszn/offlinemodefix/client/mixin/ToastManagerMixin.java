@@ -15,8 +15,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 //? if >=1.21.2 {
 @Mixin(ToastManager.class)
 //?} else {
-/*@Mixin(ToastComponent.class)
-*///?}
+/*@Mixin(ToastComponent.class)*/
+//?}
 public class ToastManagerMixin {
     /**
      * Intercepts EVERY toast right before it gets added to the screen.

@@ -8,11 +8,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 //? if >= 1.21.11 {
-/*import net.minecraft.util.Util;
-*///?} else {
-import net.minecraft.Util;
+import net.minecraft.util.Util;
+//?} else {
+/*import net.minecraft.Util;*/
 //?}
-
 
 import java.util.UUID;
 
