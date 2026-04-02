@@ -14,6 +14,6 @@ public class ChatComponentMixin {
             argsOnly = true
     )
     private GuiMessageTag removeSidebarTags(GuiMessageTag guiMessageTag) {
-        return GuiMessageTag.chatNotSecure().equals(guiMessageTag) ? null : guiMessageTag;
+        return null;
     }
 }
