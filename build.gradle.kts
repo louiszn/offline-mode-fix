@@ -119,7 +119,7 @@ publishMods {
     }
 
     displayName = "${property("mod.name")} ${property("mod.version")} for ${property("mod.mc_title")}"
-    version = property("mod.version") as String
+    version = "${property("mod.version")}+${sc.current.version}"
 
     // Grabs the commit message from GitHub Actions, or defaults to a fallback string
     changelog = System.getenv("CHANGELOG") ?: "See GitHub releases for changelog."
