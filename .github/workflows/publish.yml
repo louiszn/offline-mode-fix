@@ -24,3 +24,10 @@ jobs:
         run: ./gradlew buildAndCollect publishMods
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-mode-fix-jars
+          path: versions/*/build/libs/*.jar
+          if-no-files-found: warn
