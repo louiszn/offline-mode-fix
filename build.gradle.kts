@@ -1,6 +1,6 @@
 plugins {
     // `maven-publish`
-    // id("me.modmuss50.mod-publish-plugin")
+     id("me.modmuss50.mod-publish-plugin")
 }
 
 val isObfuscated = sc.current.parsed < "26.1"
@@ -107,19 +107,26 @@ tasks {
         dependsOn("build")
     }
 }
-/*
-// Publishes builds to Modrinth and Curseforge with changelog from the CHANGELOG.md file
+
+// Publishes builds to Modrinth automatically
 publishMods {
-    file = tasks.remapJar.map { it.archiveFile.get() }
-    additionalFiles.from(tasks.remapSourcesJar.map { it.archiveFile.get() })
+    if (isObfuscated) {
+        file.set(tasks.named<AbstractArchiveTask>("remapJar").flatMap { it.archiveFile })
+        additionalFiles.from(tasks.named<AbstractArchiveTask>("remapSourcesJar").flatMap { it.archiveFile })
+    } else {
+        file.set(tasks.named<AbstractArchiveTask>("jar").flatMap { it.archiveFile })
+        additionalFiles.from(tasks.named<AbstractArchiveTask>("sourcesJar").flatMap { it.archiveFile })
+    }
+
     displayName = "${property("mod.name")} ${property("mod.version")} for ${property("mod.mc_title")}"
     version = property("mod.version") as String
-    changelog = rootProject.file("CHANGELOG.md").readText()
+
+    // Grabs the commit message from GitHub Actions, or defaults to a fallback string
+    changelog = System.getenv("CHANGELOG") ?: "See GitHub releases for changelog."
     type = STABLE
     modLoaders.add("fabric")
 
     dryRun = providers.environmentVariable("MODRINTH_TOKEN").getOrNull() == null
-        || providers.environmentVariable("CURSEFORGE_TOKEN").getOrNull() == null
 
     modrinth {
         projectId = property("publish.modrinth") as String
@@ -129,40 +136,4 @@ publishMods {
             slug = "fabric-api"
         }
     }
-
-    curseforge {
-        projectId = property("publish.curseforge") as String
-        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
-        minecraftVersions.addAll(property("mod.mc_targets").toString().split(' '))
-        requires {
-            slug = "fabric-api"
-        }
-    }
 }
- */
-/*
-// Publishes builds to a maven repository under `com.example:template:0.1.0+mc`
-publishing {
-    repositories {
-        maven("https://maven.example.com/releases") {
-            name = "myMaven"
-            // To authenticate, create `myMavenUsername` and `myMavenPassword` properties in your Gradle home properties.
-            // See https://stonecutter.kikugie.dev/wiki/tips/properties#defining-properties
-            credentials(PasswordCredentials::class.java)
-            authentication {
-                create<BasicAuthentication>("basic")
-            }
-        }
-    }
-
-    publications {
-        create<MavenPublication>("mavenJava") {
-            groupId = "${property("mod.group")}.${property("mod.id")}"
-            artifactId = property("mod.id") as String
-            version = project.version
-
-            from(components["java"])
-        }
-    }
-}
- */
