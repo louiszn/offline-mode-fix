@@ -5,6 +5,7 @@ A lightweight, plug-and-play Fabric mod that fixes the random chat lag spikes, a
 ## Features
 * **Zero Chat Lag:** Prevents the random network timeout lag spikes that trigger after periods of inactive chat on offline servers.
 * **Clean UI:** Removes the ugly red/gray "Not Secure" sidebars from player messages, restoring the classic chat look.
+* **Player Head**: Restores player head in Player Tab for offline server.
 * **No Annoying Toasts:** Hides the "Unverified Server" popup that appears every time you join the world.
 * **No Texture Crashes:** Stops the log spam and client crashes caused by strict signature validation on custom offline skins.
 * **Smart Premium Compatibility:** Automatically detects if you are using a premium account and lets vanilla checks run normally. You can safely leave this mod installed when playing on premium servers like Hypixel.
