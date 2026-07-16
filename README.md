@@ -39,7 +39,7 @@ This project uses [Stonecutter](https://stonecutter.kikugie.dev/) to support mul
 
 You will need:
 
-* Java 21 or newer
+* Java 25 or newer
 * Git
 
 ### 1. Clone the repository
