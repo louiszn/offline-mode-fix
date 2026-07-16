@@ -1,18 +1,27 @@
+import java.net.HttpURLConnection
+import java.net.URI
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+
 plugins {
-    // `maven-publish`
-     id("me.modmuss50.mod-publish-plugin")
+    id("me.modmuss50.mod-publish-plugin")
 }
 
+val minecraftVersion = sc.current.version
 val isObfuscated = sc.current.parsed < "26.1"
 
-if (isObfuscated) {
-    apply(plugin = "net.fabricmc.fabric-loom-remap")
-} else {
-    apply(plugin = "net.fabricmc.fabric-loom")
-}
+val modId = property("mod.id").toString()
+val modName = property("mod.name").toString()
+val modVersion = property("mod.version").toString()
+val minecraftDependency = property("mod.mc_dep").toString()
+val minecraftTitle = property("mod.mc_title").toString()
+val minecraftTargets = property("mod.mc_targets").toString().split(' ')
 
-version = "${property("mod.version")}+${sc.current.version}"
-base.archivesName = property("mod.id") as String
+val fabricApiVersion = property("deps.fabric_api").toString()
+val fabricLoaderVersion = property("deps.fabric_loader").toString()
+
+val modrinthProjectId = property("publish.modrinth").toString()
+val releaseVersion = "$modVersion+$minecraftVersion"
 
 val requiredJava = when {
     sc.current.parsed >= "26.1" -> JavaVersion.VERSION_25
@@ -22,36 +31,71 @@ val requiredJava = when {
     else -> JavaVersion.VERSION_1_8
 }
 
+val loomPlugin = if (isObfuscated) {
+    "net.fabricmc.fabric-loom-remap"
+} else {
+    "net.fabricmc.fabric-loom"
+}
+pluginManager.apply(loomPlugin)
+
+version = releaseVersion
+base.archivesName = modId
+
 repositories {
-    /**
-     * Restricts dependency search of the given [groups] to the [maven URL][url],
-     * improving the setup speed.
-     */
-    fun strictMaven(url: String, alias: String, vararg groups: String) = exclusiveContent {
-        forRepository { maven(url) { name = alias } }
-        filter { groups.forEach(::includeGroup) }
+    fun strictMaven(
+        url: String,
+        alias: String,
+        vararg groups: String,
+    ) = exclusiveContent {
+        forRepository {
+            maven(url) {
+                name = alias
+            }
+        }
+
+        filter {
+            groups.forEach(::includeGroup)
+        }
     }
-    strictMaven("https://www.cursemaven.com", "CurseForge", "curse.maven")
-    strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
+
+    strictMaven(
+        "https://www.cursemaven.com",
+        "CurseForge",
+        "curse.maven",
+    )
+
+    strictMaven(
+        "https://api.modrinth.com/maven",
+        "Modrinth",
+        "maven.modrinth",
+    )
 }
 
 dependencies {
-    // `minecraft` is available in both plugins
-    add("minecraft", "com.mojang:minecraft:${sc.current.version}")
+    add(
+        "minecraft",
+        "com.mojang:minecraft:$minecraftVersion",
+    )
 
-    val fapiDep = "net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}"
-    val loaderDep = "net.fabricmc:fabric-loader:${property("deps.fabric_loader")}"
+    val loader =
+        "net.fabricmc:fabric-loader:$fabricLoaderVersion"
+
+    val fabricApi =
+        "net.fabricmc.fabric-api:fabric-api:$fabricApiVersion"
 
     if (isObfuscated) {
-        // Fetch the Loom API dynamically to grab official mappings
-        val loomExt = project.extensions.getByType<net.fabricmc.loom.api.LoomGradleExtensionAPI>()
-        add("mappings", loomExt.officialMojangMappings())
+        val loom = project.extensions.getByType<net.fabricmc.loom.api.LoomGradleExtensionAPI>()
 
-        add("modImplementation", loaderDep)
-        add("modImplementation", fapiDep) // Depend on the whole API here
+        add(
+            "mappings",
+            loom.officialMojangMappings(),
+        )
+
+        add("modImplementation", loader)
+        add("modImplementation", fabricApi)
     } else {
-        add("implementation", loaderDep)
-        add("implementation", fapiDep)    // Depend on the whole API here
+        add("implementation", loader)
+        add("implementation", fabricApi)
     }
 }
 
@@ -59,7 +103,10 @@ configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
     fabricModJsonPath = rootProject.file("src/main/resources/fabric.mod.json")
 
     decompilerOptions.named("vineflower") {
-        options.put("mark-corresponding-synthetics", "1")
+        options.put(
+            "mark-corresponding-synthetics",
+            "1",
+        )
     }
 
     runConfigs.all {
@@ -71,69 +118,145 @@ configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
 
 java {
     withSourcesJar()
-    targetCompatibility = requiredJava
+
     sourceCompatibility = requiredJava
+    targetCompatibility = requiredJava
 }
 
 tasks {
     processResources {
-        inputs.property("id", project.property("mod.id"))
-        inputs.property("name", project.property("mod.name"))
-        inputs.property("version", project.property("mod.version"))
-        inputs.property("minecraft", project.property("mod.mc_dep"))
-
-        val props = mapOf(
-            "id" to project.property("mod.id"),
-            "name" to project.property("mod.name"),
-            "version" to project.property("mod.version"),
-            "minecraft" to project.property("mod.mc_dep")
+        val properties = mapOf(
+            "id" to modId,
+            "name" to modName,
+            "version" to modVersion,
+            "minecraft" to minecraftDependency,
         )
 
-        filesMatching("fabric.mod.json") { expand(props) }
+        inputs.properties(properties)
 
-        val mixinJava = "JAVA_${requiredJava.majorVersion}"
-        filesMatching("*.mixins.json") { expand("java" to mixinJava) }
+        filesMatching("fabric.mod.json") {
+            expand(properties)
+        }
+
+        filesMatching("*.mixins.json") {
+            expand(
+                "java" to "JAVA_${requiredJava.majorVersion}",
+            )
+        }
     }
 
     register<Copy>("buildAndCollect") {
         group = "build"
-        // Dynamically switch task dependencies to avoid 'remapJar' missing errors
+
         if (isObfuscated) {
-            from(named("remapJar"), named("remapSourcesJar"))
+            from(
+                named("remapJar"),
+                named("remapSourcesJar"),
+            )
         } else {
-            from(named("jar"), named("sourcesJar"))
+            from(
+                named("jar"),
+                named("sourcesJar"),
+            )
         }
-        into(rootProject.layout.buildDirectory.file("libs/${project.property("mod.version")}"))
+
+        into(
+            rootProject.layout.buildDirectory.dir(
+                "libs/$modVersion",
+            ),
+        )
+
         dependsOn("build")
     }
 }
 
-// Publishes builds to Modrinth automatically
 publishMods {
     if (isObfuscated) {
-        file.set(tasks.named<AbstractArchiveTask>("remapJar").flatMap { it.archiveFile })
-        additionalFiles.from(tasks.named<AbstractArchiveTask>("remapSourcesJar").flatMap { it.archiveFile })
+        file.set(
+            tasks.named<AbstractArchiveTask>("remapJar").flatMap { it.archiveFile },
+        )
+
+        additionalFiles.from(
+            tasks.named<AbstractArchiveTask>("remapSourcesJar").flatMap { it.archiveFile },
+        )
     } else {
-        file.set(tasks.named<AbstractArchiveTask>("jar").flatMap { it.archiveFile })
-        additionalFiles.from(tasks.named<AbstractArchiveTask>("sourcesJar").flatMap { it.archiveFile })
+        file.set(
+            tasks.named<AbstractArchiveTask>("jar").flatMap { it.archiveFile },
+        )
+
+        additionalFiles.from(
+            tasks.named<AbstractArchiveTask>("sourcesJar").flatMap { it.archiveFile },
+        )
     }
 
-    displayName = "${property("mod.name")} ${property("mod.version")} for ${property("mod.mc_title")}"
-    version = "${property("mod.version")}+${sc.current.version}"
-
-    // Grabs the commit message from GitHub Actions, or defaults to a fallback string
-    changelog = System.getenv("CHANGELOG") ?: "See GitHub releases for changelog."
+    displayName = "$modName $modVersion for $minecraftTitle"
+    version = releaseVersion
+    changelog = System.getenv("CHANGELOG") ?: "See the release notes for changelog."
     type = STABLE
     modLoaders.add("fabric")
 
     dryRun = providers.environmentVariable("MODRINTH_TOKEN").getOrNull() == null
 
     modrinth {
-        projectId = property("publish.modrinth") as String
+        projectId = modrinthProjectId
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")
-        minecraftVersions.addAll(property("mod.mc_targets").toString().split(' '))
+        minecraftVersions.addAll(minecraftTargets)
+
         requires {
             slug = "fabric-api"
         }
+    }
+}
+
+fun modrinthVersionExists(
+    projectId: String,
+    versionNumber: String,
+): Boolean {
+    val encodedVersion = URLEncoder.encode(
+        versionNumber,
+        StandardCharsets.UTF_8,
+    )
+
+    val connection = URI(
+        "https://api.modrinth.com/v2/project/$projectId/version/$encodedVersion",
+    ).toURL().openConnection() as HttpURLConnection
+
+    connection.apply {
+        requestMethod = "GET"
+        connectTimeout = 10_000
+        readTimeout = 10_000
+
+        setRequestProperty(
+            "User-Agent",
+            "louiszn/offline-mode-fix",
+        )
+    }
+
+    return try {
+        when (val status = connection.responseCode) {
+            HttpURLConnection.HTTP_OK -> true
+            HttpURLConnection.HTTP_NOT_FOUND -> false
+
+            else -> throw GradleException("Failed to check Modrinth version $versionNumber: HTTP $status")
+        }
+    } finally {
+        connection.disconnect()
+    }
+}
+
+tasks.named("publishModrinth") {
+    onlyIf {
+        val exists = modrinthVersionExists(
+            modrinthProjectId,
+            releaseVersion,
+        )
+
+        if (exists) {
+            logger.lifecycle("Skipping Modrinth publish: $releaseVersion already exists.")
+        } else {
+            logger.lifecycle("Publishing Modrinth version: $releaseVersion")
+        }
+
+        !exists
     }
 }
