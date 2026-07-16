@@ -1,0 +1,15 @@
+when:
+  - event: tag
+    ref: refs/tags/v*
+
+steps:
+  - name: Validate Gradle Wrapper
+    image: codeberg.org/beaks/gradle-wrapper-validation
+
+  - name: Publish to Modrinth
+    image: eclipse-temurin:25-jdk
+    commands:
+      - ./gradlew buildAndCollect publishMods
+    environment:
+      MODRINTH_TOKEN:
+        from_secret: MODRINTH_TOKEN
