@@ -1,13 +1,22 @@
 package xyz.louiszn.offlinemodefix.client.mixin;
 
+//? if >=26.3 {
+import com.mojang.authlib.services.MinecraftServicesKeyInfo;
+//?} else {
+/*import com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo;
+ *///?}
+
 import com.mojang.authlib.properties.Property;
-import com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(YggdrasilServicesKeyInfo.class)
+//? if >=26.3 {
+@Mixin(MinecraftServicesKeyInfo.class)
+//?} else {
+/*@Mixin(YggdrasilServicesKeyInfo.class)
+ *///?}
 public class YggdrasilMixin {
     /**
      * Intercepts the property validation (used for skins/textures).
