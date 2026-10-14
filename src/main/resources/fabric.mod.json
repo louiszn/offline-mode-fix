@@ -18,6 +18,9 @@
   "entrypoints": {
     "client": [
       "xyz.louiszn.offlinemodefix.client.OfflineModeFix"
+    ],
+    "modmenu": [
+      "xyz.louiszn.offlinemodefix.client.ModMenuIntegration"
     ]
   },
   "mixins": [

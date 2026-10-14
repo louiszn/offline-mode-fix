@@ -20,6 +20,9 @@ val minecraftTargets = property("mod.mc_targets").toString().split(' ')
 val fabricApiVersion = property("deps.fabric_api").toString()
 val fabricLoaderVersion = property("deps.fabric_loader").toString()
 
+val clothConfigVersion = property("deps.cloth_config_version").toString()
+val modMenuVersion = property("deps.modmenu_version").toString()
+
 val modrinthProjectId = property("publish.modrinth").toString()
 val releaseVersion = "$modVersion+$minecraftVersion"
 
@@ -69,6 +72,18 @@ repositories {
         "Modrinth",
         "maven.modrinth",
     )
+
+    strictMaven(
+        "https://maven.shedaniel.me/",
+        "Shedaniel",
+        "me.shedaniel.cloth",
+    )
+
+    strictMaven(
+        "https://maven.terraformersmc.com/releases/",
+        "Terraformers",
+        "com.terraformersmc",
+    )
 }
 
 dependencies {
@@ -77,12 +92,6 @@ dependencies {
         "com.mojang:minecraft:$minecraftVersion",
     )
 
-    val loader =
-        "net.fabricmc:fabric-loader:$fabricLoaderVersion"
-
-    val fabricApi =
-        "net.fabricmc.fabric-api:fabric-api:$fabricApiVersion"
-
     if (isObfuscated) {
         val loom = project.extensions.getByType<net.fabricmc.loom.api.LoomGradleExtensionAPI>()
 
@@ -90,13 +99,47 @@ dependencies {
             "mappings",
             loom.officialMojangMappings(),
         )
-
-        add("modImplementation", loader)
-        add("modImplementation", fabricApi)
-    } else {
-        add("implementation", loader)
-        add("implementation", fabricApi)
     }
+
+    fun addDependency(
+        dependency: String,
+        optional: Boolean = false,
+        includeRuntime: Boolean = false,
+        excludeGroups: List<String> = emptyList(),
+    ) {
+        val configuration = when {
+            isObfuscated && optional -> "modCompileOnly"
+            isObfuscated -> "modImplementation"
+            optional -> "compileOnly"
+            else -> "implementation"
+        }
+
+        fun addDep(configuration: String) {
+            add(configuration, dependency) {
+                excludeGroups.forEach { exclude(group = it) }
+            }
+        }
+
+        addDep(configuration)
+
+        if (includeRuntime) {
+            addDep(if (isObfuscated) "modRuntimeOnly" else "runtimeOnly")
+        }
+    }
+
+    addDependency("net.fabricmc:fabric-loader:$fabricLoaderVersion")
+    addDependency("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
+
+    addDependency(
+        "me.shedaniel.cloth:cloth-config-fabric:$clothConfigVersion",
+        excludeGroups = listOf("net.fabricmc.fabric-api"),
+    )
+
+    addDependency(
+        "com.terraformersmc:modmenu:$modMenuVersion",
+        optional = true,
+        includeRuntime = true,
+    )
 }
 
 configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
