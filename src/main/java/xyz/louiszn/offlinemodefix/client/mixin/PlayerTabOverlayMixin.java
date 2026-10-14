@@ -4,18 +4,20 @@ import net.minecraft.client.gui.components.PlayerTabOverlay;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import xyz.louiszn.offlinemodefix.client.Config;
 
 @Mixin(PlayerTabOverlay.class)
 public class PlayerTabOverlayMixin {
     @ModifyVariable(
             //? if >= 26.1 {
             method = "extractRenderState",
+            name = "showHead",
             //?} else {
             /*method = "render",
             *///?}
-            at = @At("STORE"), ordinal = 0
+            at = @At("STORE")
     )
-    public boolean forceHeadDisplay(boolean original) {
-        return true;
+    public boolean forceTabHeads(boolean original) {
+        return Config.INSTANCE.forceTabHeads;
     }
 }

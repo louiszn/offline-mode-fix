@@ -4,9 +4,8 @@
   "compatibilityLevel": "${java}",
   "mixins": [
     "ChatComponentMixin",
-    "MinecraftMixin",
-    "ToastManagerMixin",
-    "YggdrasilMixin"
+    "OfflineClientMixin",
+    "ToastManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

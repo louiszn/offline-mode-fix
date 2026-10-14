@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import xyz.louiszn.offlinemodefix.client.Config;
 
 //? if >=1.21.2 {
 @Mixin(ToastManager.class)
@@ -18,14 +19,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /*@Mixin(ToastComponent.class)
 *///?}
 public class ToastManagerMixin {
-    /**
-     * Intercepts EVERY toast right before it gets added to the screen.
-     * If the toast is a SystemToast and carries the UNSECURE_SERVER_WARNING token,
-     * we destroy it.
-     */
     @Inject(method = "addToast", at = @At("HEAD"), cancellable = true)
-    public void blockUnsecureToast(Toast toast, CallbackInfo ci) {
-        if (toast instanceof SystemToast systemToast) {
+    public void blockUnsecureServerToast(Toast toast, CallbackInfo ci) {
+        if (Config.INSTANCE.hideUnverifiedToast && toast instanceof SystemToast systemToast) {
             if (systemToast.getToken() == SystemToast.SystemToastId.UNSECURE_SERVER_WARNING) {
                 ci.cancel();
             }
