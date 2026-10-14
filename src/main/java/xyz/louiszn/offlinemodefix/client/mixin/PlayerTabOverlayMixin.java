@@ -14,6 +14,7 @@ public class PlayerTabOverlayMixin {
             name = "showHead",
             //?} else {
             /*method = "render",
+            ordinal = 0,
             *///?}
             at = @At("STORE")
     )
